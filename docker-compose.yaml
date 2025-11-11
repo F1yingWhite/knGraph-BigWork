@@ -1,0 +1,22 @@
+services:
+  neo4j:
+    image: neo4j:latest
+    container_name: neo4j
+    environment:
+      - NEO4J_AUTH=${NEO4J_USER}/${NEO4J_PASSWORD}
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - ./assets/neo4j-data:/data
+    networks:
+      - backend-net
+    healthcheck:
+      test: ["CMD", "pgrep", "java"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+networks:
+  backend-net:
+    driver: bridge
