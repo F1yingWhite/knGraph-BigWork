@@ -9,5 +9,6 @@ wheels/
 # Virtual environments
 .venv
 
-assets
+assets/neo4j-data
 Jingshan
+DeepKE
