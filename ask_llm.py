@@ -1,10 +1,17 @@
 import json
+import os
 
 import requests
+from dotenv import load_dotenv
 
-API_URL = "http://10.130.128.54:11434/v1/chat/completions"
-MODEL_NAME = "qwen3:32b"
+load_dotenv()
 
+API_KEY = os.getenv("DS_API")
+if not API_KEY:
+    raise EnvironmentError("DS_API not found in .env")
+
+DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
+MODEL_NAME = "deepseek-chat"
 
 EXAMPLE_TEXT = """
 一枝黄花
@@ -43,56 +50,6 @@ EXAMPLE_OUTPUT = {
     "分析方法": ["薄层色谱法"],
 }
 
-
-# 2. 定义包含示例的请求函数
-def call_ollama_with_example(task_name, instruction, schema, input_text):
-    # 构建 Prompt：
-    # 结构：[指令] -> [Schema] -> [One-Shot Example] -> [实际任务]
-    user_prompt = f"""
-### 任务指令
-{instruction}
-
-### 目标 Schema (请严格按照此定义提取)
-{json.dumps(schema, ensure_ascii=False, indent=2)}
-
-### 学习示例 (One-Shot Example)
-为了帮助你理解任务，请参考以下示例：
-
-**示例输入文本：**
-{EXAMPLE_TEXT}
-
-**示例输出 JSON：**
-{json.dumps(EXAMPLE_OUTPUT, ensure_ascii=False, indent=2)}
-
----
-### 现在开始处理新的任务
-请根据上述 Schema 和 示例风格，处理以下文本：
-
-**待处理文本：**
-{input_text}
-"""
-
-    # 系统提示词：极其严格的格式约束
-    system_prompt = (
-        "你是一个中药领域的知识图谱构建专家。请根据用户的指令和Schema从文本中提取信息。忽略英文的名称和缩写，只关注中文内容。"
-        "输出必须是严格的JSON格式，不要包含Markdown代码块标记（如 ```json），不要包含任何解释性文字。"
-    )
-
-    payload = {
-        "model": MODEL_NAME,
-        "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
-        "stream": False,
-        "format": "json",  # 强制开启 Ollama 的 JSON 模式
-        "options": {"temperature": 0},  # 温度设为0，确保最稳定的复现
-    }
-
-    response = requests.post(API_URL, json=payload)
-    response.raise_for_status()
-    result_content = response.json()["choices"][0]["message"]["content"]
-
-    return result_content
-
-
 entity_schema_definitions = {
     "药物名称": "提取中药正名、别名、拼音及拉丁名。",
     "基原生物": "提取来源植物/动物的科名、属名、种名及拉丁学名。",
@@ -104,8 +61,7 @@ entity_schema_definitions = {
     "归经": "提取归属经络。",
     "功效": "提取治疗功能的动词短语。",
     "适应症": "提取主治的疾病或症状。",
-    "分析方法": "提取提及的实验检测技术名称。",
-    "其他": "提取不属于上述类别但符合实体定义的其他重要信息。",
+    "**": "提取不属于上述类别但符合实体定义的其他重要信息。",
 }
 
 entity_instruction = "请分析文本，提取符合 Schema 定义的实体。严格区分'化学成分'与'实验试剂'。"
@@ -134,5 +90,45 @@ test_input_text = """
 【贮藏】密封，防潮，避光，置阴凉处。
 """
 
-# 4. 调用
-print(call_ollama_with_example("基于示例的实体抽取", entity_instruction, entity_schema_definitions, test_input_text))
+
+def call_deepseek_openapillm(task_name, instruction, schema, input_text):
+    user_prompt = f"""
+### 任务指令
+{instruction}
+
+### 目标 Schema (请严格按照此定义提取)
+{json.dumps(schema, ensure_ascii=False, indent=2)}
+
+### 学习示例 (One-Shot Example)
+**示例输入文本：**
+{EXAMPLE_TEXT}
+
+**示例输出 JSON：**
+{json.dumps(EXAMPLE_OUTPUT, ensure_ascii=False, indent=2)}
+
+---
+### 现在开始处理新的任务
+**待处理文本：**
+{input_text}
+
+请直接输出一个合法的 JSON 对象，不要包含任何解释、前缀、后缀或 Markdown 代码块。
+"""
+
+    system_prompt = "你是一个中药知识图谱专家。只输出符合目标 Schema 的纯 JSON，不要任何额外文字。"
+
+    payload = {
+        "model": MODEL_NAME,
+        "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+        "temperature": 0.0,
+    }
+
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {API_KEY}"}
+
+    response = requests.post(DEEPSEEK_API_URL, headers=headers, json=payload)
+    response.raise_for_status()
+    content = response.json()["choices"][0]["message"]["content"]
+
+    return json.dumps(json.loads(content), ensure_ascii=False, indent=2)
+
+
+print(call_deepseek_openapillm("基于示例的实体抽取", entity_instruction, entity_schema_definitions, test_input_text))

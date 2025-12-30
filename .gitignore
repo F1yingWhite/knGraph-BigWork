@@ -8,6 +8,7 @@ wheels/
 
 # Virtual environments
 .venv
+.env
 ref
 
 assets/neo4j-data
