@@ -1,0 +1,4 @@
+[neo4j]
+uri = "bolt://10.130.128.54:7688"
+user = "neo4j"
+password = "12345678"
