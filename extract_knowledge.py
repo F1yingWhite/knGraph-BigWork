@@ -1,6 +1,7 @@
 import json
 import os
 import requests
+import time
 from dotenv import load_dotenv
 
 # 1. 加载环境变量
@@ -18,9 +19,9 @@ GRAPH_SCHEMA = {
     "nodes": [
         {
             "id": "实体唯一标识(通常是名称)",
-            "label": "实体类型(如: 药物, 化学成分, 疾病, 经络, 药用部位)",
+            "label": "实体类型(如: 药物名称, 化学成分, 实验试剂与材料, 中药药性, 经络, 疾病, 功效等)",
             "attributes": {
-                "描述": "实体的固有属性键值对。例如：{'颜色': '黄色', '熔点': '140℃', '用量': '0.15-0.35g', '味道': '苦'}"
+                "描述": "实体的固有属性键值对。例如：{'颜色': '黄色', '用量': '0.15-0.35g', '味道': '苦'}"
             }
         }
     ],
@@ -51,7 +52,7 @@ def extract_knowledge_graph(text):
 {json.dumps(GRAPH_SCHEMA, ensure_ascii=False, indent=2)}
 
 ### 提取规则
-1. **主实体**：如果是复方或药物，将其作为核心节点（如"人工牛黄"）。
+1. **主实体**：药名标题（如：一枝黄花、丁香、人参）。无需提取植物来源作为node。
 2. **属性提取**：
    - 将“性状”（如颜色、形状）、“用法用量”（数值）、“理化常数”（如熔点、水分限制）作为主实体的 `attributes`。
 3. **关系提取**：
@@ -59,7 +60,7 @@ def extract_knowledge_graph(text):
    - [药物] -> 治疗 -> [疾病/症状]
    - [药物] -> 归属于 -> [经络]
    - [药物/成分] -> 检测使用 -> [试剂] (如薄层色谱法中用到的试剂)
-4. **附录处理**：文本中包含附录（如胆红素、胆酸），请也将它们提取为独立的 Node，并提取它们各自的属性（如熔点）。
+   - 等等
 
 ### 待处理文本
 {text}
@@ -96,42 +97,76 @@ def extract_knowledge_graph(text):
         print("原始内容:", content)
         return None
 
-# 4. 测试数据 (人工牛黄及其附录)
-input_text_full = """
-人工牛黄
-本品由牛胆粉、胆酸、猪去氧胆酸、牛磺酸、胆红素、胆固醇、微量元素等加工制成。
-【性状】本品为黄色疏松粉末。味苦，微甘。
-【检查】水分不得过5.0%。
-【性味与归经】甘，凉。归心、肝经。
-【功能与主治】清热解毒，化痰定惊。用于痰热谵狂，神昏不语，小儿急惊风，咽喉肿痛，口舌生疮，痈肿疔疮。
-【用法与用量】一次0.15～0.35g，多作配方用。外用适量敷患处。
-【贮藏】密封，防潮，避光，置阴凉处。
-
-附：1．胆红素
-[性状]本品为橙色至红棕色结晶性粉末。
-[鉴别]最大吸收为453nm。
-[检查]干燥失重...减失重量不得过1.0%。
-2．胆固醇
-[性状]本品为白色、类白色结晶或结晶性粉末。
-熔点本品的熔点不得低于140℃。
-"""
-
 # 5. 运行主程序
-if __name__ == "__main__":
-    result = extract_knowledge_graph(input_text_full)
+# if __name__ == "__main__":
+#     result = extract_knowledge_graph(input_text_full)
     
-    if result:
-        # 为了方便查看，打印格式化的 JSON
-        print("\n" + "="*20 + " 抽取结果 " + "="*20)
-        print(json.dumps(result, ensure_ascii=False, indent=2))
+#     if result:
+#         # 为了方便查看，打印格式化的 JSON
+#         print("\n" + "="*20 + " 抽取结果 " + "="*20)
+#         print(json.dumps(result, ensure_ascii=False, indent=2))
         
-        # 简单统计
-        node_count = len(result.get('nodes', []))
-        edge_count = len(result.get('edges', []))
-        print(f"\n抽取统计: 节点数 {node_count}, 关系数 {edge_count}")
+#         # 简单统计
+#         node_count = len(result.get('nodes', []))
+#         edge_count = len(result.get('edges', []))
+#         print(f"\n抽取统计: 节点数 {node_count}, 关系数 {edge_count}")
         
-        # 演示如何访问属性
-        print("\n--- 属性访问示例 ---")
-        for node in result['nodes']:
-            if "attributes" in node and node["attributes"]:
-                print(f"实体: {node['id']} | 属性: {node['attributes']}")
+#         # 演示如何访问属性
+#         print("\n--- 属性访问示例 ---")
+#         for node in result['nodes']:
+#             if "attributes" in node and node["attributes"]:
+#                 print(f"实体: {node['id']} | 属性: {node['attributes']}")
+
+if __name__ == "__main__":
+    INPUT_JSON = "./assets/all_herbs_data.json"
+    OUTPUT_FILE = "./assets/final_knowledge_graph_results.json"
+
+    if not os.path.exists(INPUT_JSON):
+        print(f"找不到输入文件: {INPUT_JSON}")
+        exit()
+
+    with open(INPUT_JSON, 'r', encoding='utf-8') as f:
+        herbs_data = json.load(f)
+
+    print(f"✅ 加载成功，共 {len(herbs_data)} 条药材。")
+
+    # 如果输出文件不存在，先初始化一个空列表的开头
+    if not os.path.exists(OUTPUT_FILE):
+        with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
+            f.write("[\n") 
+    
+    # 获取已经处理过的药材数量（简单的断点续传逻辑）
+    processed_count = 0
+    
+    # 遍历处理
+    for index, herb in enumerate(herbs_data):
+        name = herb['name']
+        
+        # 打印进度
+        print(f"[{index + 1}/{len(herbs_data)}] 正在抽取: {name} ...")
+        
+        result = extract_knowledge_graph(herb['content'])
+        
+        if result:
+            result['source_name'] = name
+            
+            # 实时写入文件
+            with open(OUTPUT_FILE, 'a', encoding='utf-8') as f:
+                # 转换成格式化的字符串
+                json_str = json.dumps(result, ensure_ascii=False, indent=2)
+                # 如果不是第一条，加个逗号
+                if index > 0:
+                    f.write(",\n")
+                f.write(json_str)
+            
+            print(f"  ✅ 已保存: {name}")
+        
+        # 频率限制保护
+        time.sleep(1)
+
+    # 最后闭合 JSON 数组
+    with open(OUTPUT_FILE, 'a', encoding='utf-8') as f:
+        f.write("\n]")
+
+    print("-" * 30)
+    print(f"🚀 全部任务完成！结果已存入: {OUTPUT_FILE}")
