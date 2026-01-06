@@ -1,8 +1,13 @@
+import concurrent.futures
 import json
 import os
-import requests
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
+
 from dotenv import load_dotenv
+from openai import APIError, OpenAI
+from tqdm import tqdm
 
 # 1. 加载环境变量
 load_dotenv()
@@ -10,7 +15,8 @@ API_KEY = os.getenv("DS_API")
 if not API_KEY:
     raise EnvironmentError("请在 .env 文件中设置 DS_API")
 
-DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
+# 初始化 OpenAI 客户端，指向 DeepSeek API
+client = OpenAI(api_key=API_KEY, base_url="https://api.deepseek.com/v1")
 MODEL_NAME = "deepseek-chat"
 
 # 2. 定义目标数据结构 (Schema)
@@ -20,22 +26,17 @@ GRAPH_SCHEMA = {
         {
             "id": "实体唯一标识(通常是名称)",
             "label": "实体类型(如: 药物名称, 化学成分, 实验试剂与材料, 中药药性, 经络, 疾病, 功效等)",
-            "attributes": {
-                "描述": "实体的固有属性键值对。例如：{'颜色': '黄色', '用量': '0.15-0.35g', '味道': '苦'}"
-            }
+            "attributes": {"描述": "实体的固有属性键值对。例如：{'颜色': '黄色', '用量': '0.15-0.35g', '味道': '苦'}"},
         }
     ],
     "edges": [
-        {
-            "source": "起点实体ID",
-            "target": "终点实体ID",
-            "relation": "关系名称(如: 含有成分, 治疗, 归属于, 检测使用)"
-        }
-    ]
+        {"source": "起点实体ID", "target": "终点实体ID", "relation": "关系名称(如: 含有成分, 治疗, 归属于, 检测使用)"}
+    ],
 }
 
-# 3. 核心提取函数
-def extract_knowledge_graph(text):
+
+# 3. 核心提取函数 (带重试逻辑)
+def extract_knowledge_graph(text, max_retries=3):
     system_prompt = (
         "你是一个中药知识图谱构建专家。请从文本中提取实体(Nodes)、属性(Attributes)和关系(Edges)。"
         "严格区分【属性】和【关系】："
@@ -65,108 +66,102 @@ def extract_knowledge_graph(text):
 ### 待处理文本
 {text}
 """
+    messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}]
 
-    payload = {
-        "model": MODEL_NAME,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ],
-        "temperature": 0.0,  # 设为0以保证结果确定性
-        "response_format": {"type": "json_object"}
-    }
+    for attempt in range(max_retries):
+        try:
+            response = client.chat.completions.create(
+                model=MODEL_NAME,
+                messages=messages,
+                temperature=0.0,
+                response_format={"type": "json_object"},
+            )
+            content = response.choices[0].message.content
+            return json.loads(content)
+        except APIError as e:
+            print(f"请求失败 (尝试 {attempt + 1}/{max_retries}): {e}")
+            if attempt < max_retries - 1:
+                time.sleep(3)  # 等待3秒后重试
+        except json.JSONDecodeError:
+            print(f"JSON 解析失败 (尝试 {attempt + 1}/{max_retries})，模型可能输出了非 JSON 格式。")
+            # content 在这种情况下可能未定义，所以不打印
+            if attempt < max_retries - 1:
+                time.sleep(3)
 
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {API_KEY}"
-    }
+    print("达到最大重试次数，提取失败。")
+    return None
 
-    try:
-        print("正在请求 DeepSeek API 进行知识抽取...")
-        response = requests.post(DEEPSEEK_API_URL, headers=headers, json=payload)
-        response.raise_for_status()
-        
-        content = response.json()["choices"][0]["message"]["content"]
-        return json.loads(content)
-        
-    except requests.exceptions.RequestException as e:
-        print(f"请求失败: {e}")
-        return None
-    except json.JSONDecodeError:
-        print("JSON 解析失败，模型可能输出了非 JSON 格式。")
-        print("原始内容:", content)
-        return None
 
-# 5. 运行主程序
-# if __name__ == "__main__":
-#     result = extract_knowledge_graph(input_text_full)
-    
-#     if result:
-#         # 为了方便查看，打印格式化的 JSON
-#         print("\n" + "="*20 + " 抽取结果 " + "="*20)
-#         print(json.dumps(result, ensure_ascii=False, indent=2))
-        
-#         # 简单统计
-#         node_count = len(result.get('nodes', []))
-#         edge_count = len(result.get('edges', []))
-#         print(f"\n抽取统计: 节点数 {node_count}, 关系数 {edge_count}")
-        
-#         # 演示如何访问属性
-#         print("\n--- 属性访问示例 ---")
-#         for node in result['nodes']:
-#             if "attributes" in node and node["attributes"]:
-#                 print(f"实体: {node['id']} | 属性: {node['attributes']}")
+def process_herb(herb, output_file, lock):
+    name = herb["name"]
+    # print(f"正在抽取: {name} ...")
+
+    result = extract_knowledge_graph(herb["content"])
+
+    if result:
+        result["source_name"] = name
+        # 使用锁确保线程安全地写入文件
+        with lock:
+            with open(output_file, "a", encoding="utf-8") as f:
+                f.write(json.dumps(result, ensure_ascii=False) + "\n")
+        return name, True
+    return name, False
+
 
 if __name__ == "__main__":
     INPUT_JSON = "./assets/all_herbs_data.json"
-    OUTPUT_FILE = "./assets/final_knowledge_graph_results.json"
+    OUTPUT_FILE = "./assets/final_knowledge_graph_results.jsonl"
+    NUM_THREADS = 32
 
     if not os.path.exists(INPUT_JSON):
         print(f"找不到输入文件: {INPUT_JSON}")
         exit()
 
-    with open(INPUT_JSON, 'r', encoding='utf-8') as f:
+    with open(INPUT_JSON, "r", encoding="utf-8") as f:
         herbs_data = json.load(f)
-
     print(f"✅ 加载成功，共 {len(herbs_data)} 条药材。")
 
-    # 如果输出文件不存在，先初始化一个空列表的开头
-    if not os.path.exists(OUTPUT_FILE):
-        with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
-            f.write("[\n") 
-    
-    # 获取已经处理过的药材数量（简单的断点续传逻辑）
-    processed_count = 0
-    
-    # 遍历处理
-    for index, herb in enumerate(herbs_data):
-        name = herb['name']
-        
-        # 打印进度
-        print(f"[{index + 1}/{len(herbs_data)}] 正在抽取: {name} ...")
-        
-        result = extract_knowledge_graph(herb['content'])
-        
-        if result:
-            result['source_name'] = name
-            
-            # 实时写入文件
-            with open(OUTPUT_FILE, 'a', encoding='utf-8') as f:
-                # 转换成格式化的字符串
-                json_str = json.dumps(result, ensure_ascii=False, indent=2)
-                # 如果不是第一条，加个逗号
-                if index > 0:
-                    f.write(",\n")
-                f.write(json_str)
-            
-            print(f"  ✅ 已保存: {name}")
-        
-        # 频率限制保护
-        time.sleep(1)
+    # --- 断点续传逻辑 ---
+    processed_herbs = set()
+    if os.path.exists(OUTPUT_FILE):
+        with open(OUTPUT_FILE, "r", encoding="utf-8") as f:
+            for line in f:
+                try:
+                    data = json.loads(line)
+                    if "source_name" in data:
+                        processed_herbs.add(data["source_name"])
+                except json.JSONDecodeError:
+                    print(f"警告: 发现无法解析的行: {line.strip()}")
+        print(f"✅ 已找到 {len(processed_herbs)} 条已处理的记录，将跳过它们。")
 
-    # 最后闭合 JSON 数组
-    with open(OUTPUT_FILE, 'a', encoding='utf-8') as f:
-        f.write("\n]")
+    # 过滤掉已经处理过的药材
+    herbs_to_process = [herb for herb in herbs_data if herb["name"] not in processed_herbs]
+    if not herbs_to_process:
+        print("✅ 所有药材都已处理完毕！")
+        exit()
+
+    print(f"⏳ 剩余 {len(herbs_to_process)} 条药材待处理。开始多线程抽取...")
+
+    # --- 多线程处理 ---
+    file_lock = threading.Lock()
+    success_count = 0
+    fail_count = 0
+
+    with ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
+        # 使用 futures 字典来跟踪每个 future 对应的 herb
+        futures = {executor.submit(process_herb, herb, OUTPUT_FILE, file_lock): herb for herb in herbs_to_process}
+
+        for future in tqdm(concurrent.futures.as_completed(futures), total=len(herbs_to_process), desc="抽取进度"):
+            name, success = future.result()
+            if success:
+                success_count += 1
+            else:
+                fail_count += 1
+                herb = futures[future]
+                print(f"❌ 提取失败: {herb['name']}")
 
     print("-" * 30)
-    print(f"🚀 全部任务完成！结果已存入: {OUTPUT_FILE}")
+    print("🚀 全部任务完成！")
+    print(f"  - 成功: {success_count} 条")
+    print(f"  - 失败: {fail_count} 条")
+    print(f"  - 总计: {len(processed_herbs) + success_count} 条记录已存入: {OUTPUT_FILE}")
