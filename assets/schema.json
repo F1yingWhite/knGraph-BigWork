@@ -1,0 +1,1032 @@
+{
+  "schema": {
+    "version": "2.0",
+    "name": "中医药知识图谱本体Schema",
+    "description": "基于《中国药典》标准的中药材知识图谱数据模型定义",
+    "created_date": "2024-06-15",
+    "last_updated": "2024-06-15",
+    "namespace": "tcm",
+    "source": "中国药典2020版及相关标准"
+  },
+  "entity_types": [
+    {
+      "name": "Medicine",
+      "label": "药材",
+      "description": "中药材实体，包括植物药、动物药、矿物药等",
+      "properties": [
+        {
+          "name": "chinese_name",
+          "label": "中文名",
+          "type": "string"
+        },
+        {
+          "name": "pinyin",
+          "label": "拼音",
+          "type": "string"
+        },
+        {
+          "name": "latin_name",
+          "label": "拉丁名",
+          "type": "string"
+        },
+        {
+          "name": "harvest_season",
+          "label": "采收季节",
+          "type": "string"
+        },
+        {
+          "name": "processing_method_raw",
+          "label": "初加工方法",
+          "type": "text"
+        },
+        {
+          "name": "storage_condition",
+          "label": "贮藏条件",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "SourceOrganism",
+      "label": "来源生物",
+      "description": "药材的来源植物或动物",
+      "properties": [
+        {
+          "name": "type",
+          "label": "来源类型",
+          "type": "string"
+        },
+        {
+          "name": "chinese_name",
+          "label": "中文名",
+          "type": "string"
+        },
+        {
+          "name": "latin_name",
+          "label": "拉丁学名",
+          "type": "string"
+        },
+        {
+          "name": "family",
+          "label": "科",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "MedicinalPart",
+      "label": "药用部位",
+      "description": "药材的药用部位",
+      "properties": [
+        {
+          "name": "part_type",
+          "label": "部位类型",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "具体描述",
+          "type": "text"
+        },
+        {
+          "name": "processing_state",
+          "label": "加工状态",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "Morphology",
+      "label": "性状特征",
+      "description": "药材的性状特征描述",
+      "properties": [
+        {
+          "name": "part",
+          "label": "部位",
+          "type": "string"
+        },
+        {
+          "name": "shape",
+          "label": "形状",
+          "type": "text"
+        },
+        {
+          "name": "size",
+          "label": "大小",
+          "type": "text"
+        },
+        {
+          "name": "color",
+          "label": "颜色",
+          "type": "string"
+        },
+        {
+          "name": "texture",
+          "label": "质地",
+          "type": "string"
+        },
+        {
+          "name": "odor",
+          "label": "气味",
+          "type": "string"
+        },
+        {
+          "name": "taste",
+          "label": "味道",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "MicroscopicFeature",
+      "label": "显微特征",
+      "description": "药材的显微鉴别特征",
+      "properties": [
+        {
+          "name": "observation_part",
+          "label": "观察部位",
+          "type": "string"
+        },
+        {
+          "name": "cell_type",
+          "label": "细胞类型",
+          "type": "string"
+        },
+        {
+          "name": "feature_description",
+          "label": "特征描述",
+          "type": "text"
+        },
+        {
+          "name": "size_range",
+          "label": "尺寸范围",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "ChemicalComponent",
+      "label": "化学成分",
+      "description": "药材含有的化学成分",
+      "properties": [
+        {
+          "name": "name",
+          "label": "成分名称",
+          "type": "string"
+        },
+        {
+          "name": "english_name",
+          "label": "英文名",
+          "type": "string"
+        },
+        {
+          "name": "molecular_formula",
+          "label": "分子式",
+          "type": "string"
+        },
+        {
+          "name": "chemical_type",
+          "label": "化学类型",
+          "type": "string"
+        },
+        {
+          "name": "is_standard_component",
+          "label": "是否为标准成分",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "IdentificationMethod",
+      "label": "鉴别方法",
+      "description": "药材的鉴别方法",
+      "properties": [
+        {
+          "name": "method_type",
+          "label": "方法类型",
+          "type": "string"
+        },
+        {
+          "name": "conditions",
+          "label": "实验条件",
+          "type": "text"
+        },
+        {
+          "name": "result_criterion",
+          "label": "结果判断标准",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "QualityTest",
+      "label": "检查项目",
+      "description": "药材的质量检查项目",
+      "properties": [
+        {
+          "name": "test_item",
+          "label": "检查项目",
+          "type": "string"
+        },
+        {
+          "name": "limit_value",
+          "label": "限度值",
+          "type": "string"
+        },
+        {
+          "name": "test_method",
+          "label": "测定方法",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "ProcessingMethod",
+      "label": "炮制方法",
+      "description": "药材的炮制加工方法",
+      "properties": [
+        {
+          "name": "method_type",
+          "label": "炮制类型",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "具体操作",
+          "type": "text"
+        },
+        {
+          "name": "processed_product_name",
+          "label": "炮制品名称",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "PropertyChannel",
+      "label": "性味归经",
+      "description": "药材的性味和归经属性",
+      "properties": [
+        {
+          "name": "property",
+          "label": "性味",
+          "type": "string"
+        },
+        {
+          "name": "channel_tropism",
+          "label": "归经",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "FunctionIndication",
+      "label": "功能主治",
+      "description": "药材的功能和主治病症",
+      "properties": [
+        {
+          "name": "function",
+          "label": "功能",
+          "type": "text"
+        },
+        {
+          "name": "indications",
+          "label": "主治",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "UsageDosage",
+      "label": "用法用量",
+      "description": "药材的使用方法和剂量",
+      "properties": [
+        {
+          "name": "usage_method",
+          "label": "用法",
+          "type": "text"
+        },
+        {
+          "name": "dosage_range",
+          "label": "用量范围",
+          "type": "string"
+        },
+        {
+          "name": "notes",
+          "label": "注意事项",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Incompatibility",
+      "label": "配伍禁忌",
+      "description": "药材的配伍禁忌信息",
+      "properties": [
+        {
+          "name": "incompatibility_type",
+          "label": "禁忌类型",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "禁忌内容",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Disease",
+      "label": "疾病",
+      "description": "中医疾病名称",
+      "properties": [
+        {
+          "name": "name",
+          "label": "疾病名称",
+          "type": "string"
+        },
+        {
+          "name": "category",
+          "label": "疾病分类",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "Symptom",
+      "label": "症状",
+      "description": "中医症状实体",
+      "properties": [
+        {
+          "name": "symptom_name",
+          "label": "症状名称",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "症状描述",
+          "type": "text"
+        },
+        {
+          "name": "severity",
+          "label": "严重程度",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "Meridian",
+      "label": "经络",
+      "description": "中医经络实体",
+      "properties": [
+        {
+          "name": "meridian_name",
+          "label": "经络名称",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "经络描述",
+          "type": "text"
+        },
+        {
+          "name": "associated_organs",
+          "label": "关联脏腑",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "细胞类型",
+      "label": "细胞类型",
+      "description": "细胞类型实体类型",
+      "properties": [
+        {
+          "name": "name",
+          "label": "名称",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "描述",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "炮制方法",
+      "label": "炮制方法",
+      "description": "中药炮制方法实体",
+      "properties": [
+        {
+          "name": "processing_method",
+          "label": "炮制方法",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "炮制描述",
+          "type": "text"
+        },
+        {
+          "name": "purpose",
+          "label": "炮制目的",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "动物来源",
+      "label": "动物来源",
+      "description": "药材的动物来源实体",
+      "properties": [
+        {
+          "name": "animal_name",
+          "label": "动物名称",
+          "type": "string"
+        },
+        {
+          "name": "latin_name",
+          "label": "拉丁学名",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "描述",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "实验材料",
+      "label": "实验材料",
+      "description": "实验材料实体类型",
+      "properties": [
+        {
+          "name": "name",
+          "label": "名称",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "描述",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "昆虫来源",
+      "label": "昆虫来源",
+      "description": "昆虫来源实体类型",
+      "properties": [
+        {
+          "name": "name",
+          "label": "名称",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "描述",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "实验设备",
+      "label": "实验设备",
+      "description": "实验设备实体类型",
+      "properties": [
+        {
+          "name": "name",
+          "label": "名称",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "描述",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "检测方法",
+      "label": "检测方法",
+      "description": "中药检测方法实体",
+      "properties": [
+        {
+          "name": "test_method",
+          "label": "检测方法",
+          "type": "string"
+        },
+        {
+          "name": "principle",
+          "label": "检测原理",
+          "type": "text"
+        },
+        {
+          "name": "application",
+          "label": "应用范围",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "LaboratoryMethod",
+      "label": "实验方法",
+      "description": "实验检测方法实体",
+      "properties": [
+        {
+          "name": "method_name",
+          "label": "方法名称",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "方法描述",
+          "type": "text"
+        },
+        {
+          "name": "principle",
+          "label": "原理",
+          "type": "text"
+        },
+        {
+          "name": "application",
+          "label": "应用",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "PlantSource",
+      "label": "植物来源",
+      "description": "药材的植物来源实体",
+      "properties": [
+        {
+          "name": "plant_name",
+          "label": "植物名称",
+          "type": "string"
+        },
+        {
+          "name": "latin_name",
+          "label": "拉丁学名",
+          "type": "string"
+        },
+        {
+          "name": "family",
+          "label": "科属",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "描述",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "试剂",
+      "label": "试剂",
+      "description": "试剂实体类型",
+      "properties": [
+        {
+          "name": "name",
+          "label": "名称",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "描述",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "植物",
+      "label": "植物",
+      "description": "植物实体类型",
+      "properties": [
+        {
+          "name": "name",
+          "label": "名称",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "描述",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "LaboratoryMaterial",
+      "label": "实验试剂与材料",
+      "description": "实验试剂与材料实体",
+      "properties": [
+        {
+          "name": "material_name",
+          "label": "材料名称",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "材料描述",
+          "type": "text"
+        },
+        {
+          "name": "chemical_formula",
+          "label": "化学式",
+          "type": "string"
+        },
+        {
+          "name": "concentration",
+          "label": "浓度",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "植物科属",
+      "label": "植物科属",
+      "description": "植物科属实体类型",
+      "properties": [
+        {
+          "name": "name",
+          "label": "名称",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "描述",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "制剂",
+      "label": "制剂",
+      "description": "中药制剂实体",
+      "properties": [
+        {
+          "name": "preparation_name",
+          "label": "制剂名称",
+          "type": "string"
+        },
+        {
+          "name": "composition",
+          "label": "组成",
+          "type": "text"
+        },
+        {
+          "name": "usage",
+          "label": "用法",
+          "type": "text"
+        },
+        {
+          "name": "indications",
+          "label": "适应症",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "昆虫",
+      "label": "昆虫",
+      "description": "昆虫实体类型",
+      "properties": [
+        {
+          "name": "name",
+          "label": "名称",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "描述",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "中药药性",
+      "label": "中药药性",
+      "description": "中药药性实体",
+      "properties": [
+        {
+          "name": "property_name",
+          "label": "药性名称",
+          "type": "string"
+        },
+        {
+          "name": "nature",
+          "label": "性质",
+          "type": "string"
+        },
+        {
+          "name": "taste",
+          "label": "味道",
+          "type": "string"
+        },
+        {
+          "name": "channel_tropism",
+          "label": "归经",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "真菌来源",
+      "label": "真菌来源",
+      "description": "药材的真菌来源实体",
+      "properties": [
+        {
+          "name": "fungus_name",
+          "label": "真菌名称",
+          "type": "string"
+        },
+        {
+          "name": "latin_name",
+          "label": "拉丁学名",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "描述",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "微生物",
+      "label": "微生物",
+      "description": "微生物实体类型",
+      "properties": [
+        {
+          "name": "name",
+          "label": "名称",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "描述",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "功效",
+      "label": "功效",
+      "description": "中药功效实体",
+      "properties": [
+        {
+          "name": "efficacy_name",
+          "label": "功效名称",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "功效描述",
+          "type": "text"
+        },
+        {
+          "name": "category",
+          "label": "功效分类",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "矿物",
+      "label": "矿物",
+      "description": "矿物类药材实体",
+      "properties": [
+        {
+          "name": "mineral_name",
+          "label": "矿物名称",
+          "type": "string"
+        },
+        {
+          "name": "chemical_composition",
+          "label": "化学成分",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "label": "描述",
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "relationship_types": [
+    {
+      "name": "derived_from",
+      "label": "来源于",
+      "from_entity": "Medicine",
+      "to_entity": "SourceOrganism"
+    },
+    {
+      "name": "has_medicinal_part",
+      "label": "具有药用部位",
+      "from_entity": "Medicine",
+      "to_entity": "MedicinalPart"
+    },
+    {
+      "name": "has_morphology",
+      "label": "具有性状特征",
+      "from_entity": "Medicine",
+      "to_entity": "Morphology"
+    },
+    {
+      "name": "has_microscopic_feature",
+      "label": "具有显微特征",
+      "from_entity": "Medicine",
+      "to_entity": "MicroscopicFeature"
+    },
+    {
+      "name": "contains_component",
+      "label": "含有成分",
+      "from_entity": "Medicine",
+      "to_entity": "ChemicalComponent"
+    },
+    {
+      "name": "identified_by",
+      "label": "采用鉴别方法",
+      "from_entity": "Medicine",
+      "to_entity": "IdentificationMethod"
+    },
+    {
+      "name": "has_quality_test",
+      "label": "需符合检查标准",
+      "from_entity": "Medicine",
+      "to_entity": "QualityTest"
+    },
+    {
+      "name": "processed_by",
+      "label": "采用炮制方法",
+      "from_entity": "Medicine",
+      "to_entity": "ProcessingMethod"
+    },
+    {
+      "name": "has_property_channel",
+      "label": "具有性味归经",
+      "from_entity": "Medicine",
+      "to_entity": "PropertyChannel"
+    },
+    {
+      "name": "has_function_indication",
+      "label": "具有功能主治",
+      "from_entity": "Medicine",
+      "to_entity": "FunctionIndication"
+    },
+    {
+      "name": "has_usage_dosage",
+      "label": "具有用法用量",
+      "from_entity": "Medicine",
+      "to_entity": "UsageDosage"
+    },
+    {
+      "name": "has_incompatibility",
+      "label": "具有配伍禁忌",
+      "from_entity": "Medicine",
+      "to_entity": "Incompatibility"
+    },
+    {
+      "name": "treats_disease",
+      "label": "用于治疗",
+      "from_entity": "Medicine",
+      "to_entity": "Disease"
+    },
+    {
+      "name": "incompatibility_involves",
+      "label": "禁忌涉及",
+      "from_entity": "Incompatibility",
+      "to_entity": "Medicine"
+    },
+    {
+      "name": "含有成分",
+      "label": "含有",
+      "from_entity": "Medicine",
+      "to_entity": "ChemicalComponent"
+    },
+    {
+      "name": "性味",
+      "label": "性味",
+      "from_entity": "Medicine",
+      "to_entity": "中药药性"
+    },
+    {
+      "name": "使用",
+      "label": "使用",
+      "from_entity": "LaboratoryMethod",
+      "to_entity": "LaboratoryMaterial"
+    },
+    {
+      "name": "治疗",
+      "label": "治疗",
+      "from_entity": "Medicine",
+      "to_entity": "Disease"
+    },
+    {
+      "name": "制剂",
+      "label": "制剂",
+      "from_entity": "Medicine",
+      "to_entity": "制剂"
+    },
+    {
+      "name": "用途为原料",
+      "label": "用途为原料",
+      "from_entity": "ChemicalComponent",
+      "to_entity": "Medicine"
+    },
+    {
+      "name": "检测使用",
+      "label": "检测使用",
+      "from_entity": "Medicine",
+      "to_entity": "LaboratoryMaterial"
+    },
+    {
+      "name": "感染",
+      "label": "感染",
+      "from_entity": "微生物",
+      "to_entity": "Medicine"
+    },
+    {
+      "name": "炮制为",
+      "label": "炮制成",
+      "from_entity": "Medicine",
+      "to_entity": "Medicine"
+    },
+    {
+      "name": "归属于",
+      "label": "归属于",
+      "from_entity": "Medicine",
+      "to_entity": "Meridian"
+    },
+    {
+      "name": "具有功效",
+      "label": "具有功效",
+      "from_entity": "Medicine",
+      "to_entity": "功效"
+    },
+    {
+      "name": "不宜同用",
+      "label": "不宜同用",
+      "from_entity": "Medicine",
+      "to_entity": "Medicine"
+    },
+    {
+      "name": "炮制使用",
+      "label": "炮制使用",
+      "from_entity": "Medicine",
+      "to_entity": "LaboratoryMaterial"
+    },
+    {
+      "name": "含有",
+      "label": "含有",
+      "from_entity": "Medicine",
+      "to_entity": "ChemicalComponent"
+    },
+    {
+      "name": "具有药性",
+      "label": "具有药性",
+      "from_entity": "Medicine",
+      "to_entity": "中药药性"
+    },
+    {
+      "name": "包含",
+      "label": "包含",
+      "from_entity": "PlantSource",
+      "to_entity": "PlantSource"
+    },
+    {
+      "name": "炮制自",
+      "label": "炮制自",
+      "from_entity": "Medicine",
+      "to_entity": "Medicine"
+    },
+    {
+      "name": "不宜与",
+      "label": "不宜同用",
+      "from_entity": "Medicine",
+      "to_entity": "Medicine"
+    },
+    {
+      "name": "来源于",
+      "label": "来源于",
+      "from_entity": "Medicine",
+      "to_entity": "PlantSource"
+    },
+    {
+      "name": "炮制成",
+      "label": "炮制成",
+      "from_entity": "Medicine",
+      "to_entity": "Medicine"
+    },
+    {
+      "name": "包含变种",
+      "label": "包含",
+      "from_entity": "PlantSource",
+      "to_entity": "PlantSource"
+    }
+  ]
+}
