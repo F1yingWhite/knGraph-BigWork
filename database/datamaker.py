@@ -1,9 +1,8 @@
 import json
 import pathlib
 
+from config import config
 from neo4j import GraphDatabase
-
-from database.config import config
 
 
 class Neo4jDriver:
@@ -37,7 +36,7 @@ class Neo4jDriver:
 
 if __name__ == "__main__":
     db = Neo4jDriver()
-    file_path = pathlib.Path("../assets/1.jsonl")
+    file_path = pathlib.Path("./assets/final_knowledge_graph_results.jsonl")
 
     try:
         db.execute_query("CREATE CONSTRAINT IF NOT EXISTS FOR (n:Entity) REQUIRE n.id IS UNIQUE")

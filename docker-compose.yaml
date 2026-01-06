@@ -4,6 +4,7 @@ services:
     container_name: kn-bigwork
     environment:
       - NEO4J_AUTH=${NEO4J_USER}/${NEO4J_PASSWORD}
+      - NEO4J_PLUGINS=["apoc"]
     ports:
       - "7477:7474"
       - "7688:7687"
