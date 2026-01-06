@@ -7,7 +7,6 @@ requires-python = ">=3.12"
 
 dependencies = [
     "numpy>=2.3.5",
-    "pydantic>=2.12.5",
     "ujson>=5.11.0",
     "tqdm>=4.67.1",
     "protobuf>=6.33.2",
@@ -16,6 +15,9 @@ dependencies = [
     "matplotlib>=3.10.7",
     "openai>=2.9.0",
     "socksio>=1.0.0",
+    "neo4j>=6.0.3",
+    "pydantic>=2.12.5",
+    "toml>=0.10.2",
 ]
 # # uv sync --extra llm
 [project.optional-dependencies]
